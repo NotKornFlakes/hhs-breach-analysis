@@ -4,6 +4,8 @@
 
 **[Clinic memo](reports/clinic_memo.md)**: the findings applied to the security budget of a fictional 40-person clinic in Central New York.
 
+**[Article on Medium](https://medium.com/@no1listeninghere/security-over-ease-of-use-the-uncomfortable-truth-5c1168768a3e)**: *Security Over Ease of Use: The Uncomfortable Truth*.
+
 An exploratory analysis of healthcare data breaches affecting 500 or more people, as reported to the U.S. Department of Health and Human Services (HHS) Office for Civil Rights.
 
 ## Data Source
