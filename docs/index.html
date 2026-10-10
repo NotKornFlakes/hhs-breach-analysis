@@ -44,7 +44,7 @@
   header { padding: 40px 0 4px; }
   h1 { font-size: clamp(1.75rem, 5vw, 2.6rem); line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 8px; }
   .subtitle { color: var(--ink-2); font-size: 1.05rem; margin: 0; }
-  .repo-link { display: inline-block; margin-top: 10px; font-size: 0.9rem; }
+  .header-links { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 10px 0 0; font-size: 0.9rem; }
 
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 24px 0 8px; }
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
@@ -115,7 +115,10 @@
 <header class="wrap">
   <h1>Where Healthcare Breaches Come From</h1>
   <p class="subtitle">8,013 HHS-reported breaches, 2009–2026</p>
-  <a class="repo-link" href="https://github.com/NotKornFlakes/hhs-breach-analysis">Code and notebooks on GitHub</a>
+  <p class="header-links">
+    <a href="https://github.com/NotKornFlakes/hhs-breach-analysis">Code and notebooks on GitHub</a>
+    <a href="https://github.com/NotKornFlakes/hhs-breach-analysis/blob/main/reports/clinic_memo.md">What this means for a small clinic (memo)</a>
+  </p>
 </header>
 
 <main class="wrap">
@@ -250,6 +253,7 @@
     <a href="https://github.com/NotKornFlakes/hhs-breach-analysis">GitHub repository</a>
     <a href="https://github.com/NotKornFlakes/hhs-breach-analysis/blob/main/notebooks/01_cleaning.ipynb">Cleaning notebook</a>
     <a href="https://github.com/NotKornFlakes/hhs-breach-analysis/blob/main/notebooks/02_analysis.ipynb">Analysis notebook</a>
+    <a href="https://github.com/NotKornFlakes/hhs-breach-analysis/blob/main/reports/clinic_memo.md">Clinic memo</a>
   </nav>
   <p>Built with pandas and Plotly from small aggregated results; the full dataset isn't loaded into this page.</p>
 </footer>

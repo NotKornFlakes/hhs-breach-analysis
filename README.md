@@ -2,6 +2,8 @@
 
 **[Live dashboard](https://notkornflakes.github.io/hhs-breach-analysis/)**: the findings as interactive charts, readable on a phone.
 
+**[Clinic memo](reports/clinic_memo.md)**: the findings applied to the security budget of a fictional 40-person clinic in Central New York.
+
 An exploratory analysis of healthcare data breaches affecting 500 or more people, as reported to the U.S. Department of Health and Human Services (HHS) Office for Civil Rights.
 
 ## Data Source
