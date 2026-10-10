@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where Healthcare Breaches Come From</title>
+<meta name="description" content="[[SUBTITLE]]: how breaches changed over time, what causes them, how often vendors are involved, where the data was, and how New York compares.">
+<meta property="og:title" content="Where Healthcare Breaches Come From">
+<meta property="og:description" content="[[SUBTITLE]]">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231a1a19'/%3E%3Crect x='7' y='17' width='4' height='8' rx='1' fill='%233987e5'/%3E%3Crect x='14' y='12' width='4' height='13' rx='1' fill='%233987e5'/%3E%3Crect x='21' y='7' width='4' height='18' rx='1' fill='%233987e5'/%3E%3C/svg%3E">
+<style>
+  :root {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-raised: #262624;
+    --border: rgba(255, 255, 255, 0.10);
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --link: #86b6ef;
+    --blue: #3987e5;
+    --orange: #d95926;
+    --aqua: #199e70;
+    --yellow: #c98500;
+    --context: #4f4e4a;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font: 16px/1.55 var(--font);
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+  a { color: var(--link); }
+  a:hover { color: var(--ink); }
+
+  header { padding: 40px 0 4px; }
+  h1 { font-size: clamp(1.75rem, 5vw, 2.6rem); line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 8px; }
+  .subtitle { color: var(--ink-2); font-size: 1.05rem; margin: 0; }
+  .repo-link { display: inline-block; margin-top: 10px; font-size: 0.9rem; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 24px 0 8px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .card .label { color: var(--ink-2); font-size: 0.85rem; margin: 0 0 4px; }
+  .card .value { font-size: 1.9rem; font-weight: 650; line-height: 1.15; margin: 0; }
+  .card .value .aside { font-size: 1rem; font-weight: 500; color: var(--ink-2); white-space: nowrap; }
+  .card .note { color: var(--muted); font-size: 0.8rem; line-height: 1.4; margin: 6px 0 0; }
+
+  section.block { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 20px 16px; margin: 16px 0; }
+  section.block h2 { font-size: 1.2rem; line-height: 1.3; margin: 0 0 4px; }
+  .intro { color: var(--ink-2); font-size: 0.92rem; margin: 0 0 8px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; padding: 0; margin: 8px 0 0; color: var(--ink-2); font-size: 0.85rem; }
+  .legend li { display: inline-flex; align-items: center; gap: 7px; }
+  .key { display: inline-block; flex: none; }
+  .key.line { width: 16px; height: 3px; border-radius: 2px; }
+  .key.bar { width: 10px; height: 10px; border-radius: 2px; }
+  .key.dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .panels { display: grid; gap: 8px 28px; }
+  .panels.two { grid-template-columns: 1fr 1fr; }
+  .panels.states {
+    grid-template-columns: 2fr 3fr;
+    grid-template-rows: auto 1fr; /* the type chart keeps its own height; the tall ranking stretches the second row */
+    grid-template-areas: "rank types" "rank locations";
+    align-items: start;
+  }
+  .area-rank { grid-area: rank; }
+  .area-types { grid-area: types; }
+  .area-locations { grid-area: locations; }
+  figure.panel { margin: 0; min-width: 0; }
+  figure.panel figcaption { font-size: 0.88rem; font-weight: 600; margin: 12px 0 0; }
+  .plot { width: 100%; }
+  .plot-fallback { color: var(--muted); font-size: 0.85rem; padding: 16px 0; }
+
+  .finding { border-left: 3px solid var(--blue); padding: 2px 0 2px 12px; margin: 16px 0 8px; font-size: 1rem; }
+  details { margin-top: 8px; font-size: 0.85rem; color: var(--ink-2); }
+  summary { cursor: pointer; padding: 4px 0; }
+  summary:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .table-wrap { overflow-x: auto; margin: 8px 0 4px; }
+  .table-wrap h3 { font-size: 0.85rem; color: var(--ink); margin: 12px 0 4px; }
+  table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { text-align: right; padding: 4px 12px 4px 0; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { color: var(--ink); font-weight: 600; }
+  tbody th { font-weight: 400; color: var(--ink-2); }
+
+  .method ul { margin: 10px 0 0; padding-left: 1.2em; color: var(--ink-2); }
+  .method li { margin: 7px 0; }
+  .method li strong { color: var(--ink); }
+  .method p { color: var(--ink-2); font-size: 0.92rem; margin: 14px 0 0; }
+
+  footer { padding: 8px 0 48px; color: var(--muted); font-size: 0.9rem; }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 14px; }
+  .links a { display: inline-block; padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); text-decoration: none; color: var(--ink); }
+  .links a:hover { border-color: var(--link); }
+
+  @media (max-width: 720px) {
+    header { padding-top: 28px; }
+    .panels.two { grid-template-columns: 1fr; }
+    .panels.states { grid-template-columns: 1fr; grid-template-areas: "rank" "types" "locations"; }
+    section.block { padding: 16px 14px 12px; }
+    .card .value { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+<header class="wrap">
+  <h1>Where Healthcare Breaches Come From</h1>
+  <p class="subtitle">[[SUBTITLE]]</p>
+  <a class="repo-link" href="[[REPO_URL]]">Code and notebooks on GitHub</a>
+</header>
+
+<main class="wrap">
+  <section class="cards" aria-label="Headline numbers">
+    <div class="card">
+      <p class="label">Total breaches</p>
+      <p class="value">[[TOTAL]]</p>
+      <p class="note">[[TOTAL_NOTE]]</p>
+    </div>
+    <div class="card">
+      <p class="label">People affected</p>
+      <p class="value">[[MEDIAN]] <span class="aside">vs [[MEAN]]</span></p>
+      <p class="note">per breach: median vs average. A few huge breaches pull the average far up.</p>
+    </div>
+    <div class="card">
+      <p class="label">Hacking share</p>
+      <p class="value">[[HACKING]]</p>
+      <p class="note">[[HACKING_NOTE]]</p>
+    </div>
+    <div class="card">
+      <p class="label">Vendor share</p>
+      <p class="value">[[VENDOR]]</p>
+      <p class="note">[[VENDOR_NOTE]]</p>
+    </div>
+    <div class="card">
+      <p class="label">New York's rank</p>
+      <p class="value">[[NY_RANK]] <span class="aside">of [[STATE_COUNT]]</span></p>
+      <p class="note">for breaches per resident, [[FIRST_YEAR]]–[[LAST_YEAR]] (50 states and DC)</p>
+    </div>
+  </section>
+
+  <section class="block" aria-labelledby="trend-title">
+    <h2 id="trend-title">1. Are breaches becoming more common?</h2>
+    <p class="intro">Breaches reported and people affected each year, [[FIRST_YEAR]]–[[LAST_YEAR]]. People affected is shown with and without mega-breaches (1,000,000+ people).</p>
+    <div class="panels">
+      <figure class="panel"><figcaption>Breaches reported</figcaption>
+        <div class="plot" id="trend-breaches" role="img" aria-label="Bar chart of breaches reported per year"></div></figure>
+      <figure class="panel"><figcaption>People affected, all breaches (millions)</figcaption>
+        <div class="plot" id="trend-people" role="img" aria-label="Bar chart of people affected per year, all breaches"></div></figure>
+      <figure class="panel"><figcaption>People affected, excluding mega-breaches (millions)</figcaption>
+        <div class="plot" id="trend-people-excl" role="img" aria-label="Bar chart of people affected per year, excluding mega-breaches"></div></figure>
+    </div>
+    <p class="finding">[[FINDING_TREND]]</p>
+    <details><summary>Show the numbers</summary><div class="table-wrap" id="trend-table"></div></details>
+  </section>
+
+  <section class="block" aria-labelledby="cause-title">
+    <h2 id="cause-title">2. Did hacking replace theft and loss?</h2>
+    <p class="intro">Share of each year's breaches involving each type. A breach can have several types, so shares can add up to more than 100%.</p>
+    <ul class="legend">
+      <li><span class="key line" style="background: var(--blue)"></span>Hacking/IT incident</li>
+      <li><span class="key line" style="background: var(--orange)"></span>Theft</li>
+      <li><span class="key line" style="background: var(--aqua)"></span>Loss</li>
+      <li><span class="key line" style="background: var(--yellow)"></span>Unauthorized access</li>
+      <li><span class="key line" style="background: var(--context)"></span>Improper disposal, other, unknown</li>
+    </ul>
+    <figure class="panel"><div class="plot" id="cause-plot" role="img" aria-label="Line chart of the share of breaches by type per year"></div></figure>
+    <p class="finding">[[FINDING_CAUSE]]</p>
+    <details><summary>Show the numbers</summary><div class="table-wrap" id="cause-table"></div></details>
+  </section>
+
+  <section class="block" aria-labelledby="vendor-title">
+    <h2 id="vendor-title">3. How often are vendors involved?</h2>
+    <p class="intro">Share of each year's breaches, and of the people affected, that involved a business associate: an outside company handling the data, such as a billing service or IT provider.</p>
+    <ul class="legend">
+      <li><span class="key line" style="background: var(--blue)"></span>All breaches</li>
+      <li><span class="key line" style="background: var(--orange)"></span>Excluding mega-breaches</li>
+    </ul>
+    <div class="panels two">
+      <figure class="panel"><figcaption>Share of breaches</figcaption>
+        <div class="plot" id="vendor-breaches" role="img" aria-label="Line chart of the share of breaches involving a vendor"></div></figure>
+      <figure class="panel"><figcaption>Share of people affected</figcaption>
+        <div class="plot" id="vendor-people" role="img" aria-label="Line chart of the share of people affected in vendor breaches"></div></figure>
+    </div>
+    <p class="finding">[[FINDING_VENDORS]]</p>
+    <details><summary>Show the numbers</summary><div class="table-wrap" id="vendor-table"></div></details>
+  </section>
+
+  <section class="block" aria-labelledby="location-title">
+    <h2 id="location-title">4. Where was the breached information?</h2>
+    <p class="intro">All [[TOTAL]] breaches. A breach can involve several locations and is counted under each one.</p>
+    <ul class="legend">
+      <li><span class="key bar" style="background: var(--blue)"></span>All breaches</li>
+      <li><span class="key bar" style="background: var(--orange)"></span>Excluding mega-breaches</li>
+    </ul>
+    <div class="panels two">
+      <figure class="panel"><figcaption>Number of breaches</figcaption>
+        <div class="plot" id="location-count" role="img" aria-label="Bar chart of breaches by location"></div></figure>
+      <figure class="panel"><figcaption>Median people affected per breach</figcaption>
+        <div class="plot" id="location-median" role="img" aria-label="Bar chart of median people affected by location"></div></figure>
+    </div>
+    <p class="finding">[[FINDING_LOCATIONS]]</p>
+    <details><summary>Show the numbers</summary><div class="table-wrap" id="location-table"></div></details>
+  </section>
+
+  <section class="block" aria-labelledby="state-title">
+    <h2 id="state-title">5. How does New York compare?</h2>
+    <p class="intro">Breaches reported [[FIRST_YEAR]]–[[LAST_YEAR]] per million residents (2020 Census), and New York's mix of breach types and locations compared with all U.S. breaches.</p>
+    <ul class="legend">
+      <li><span class="key dot" style="background: var(--blue)"></span>New York</li>
+      <li><span class="key dot" style="background: var(--muted)"></span>All U.S.</li>
+      <li><span class="key bar" style="background: var(--context)"></span>Other states</li>
+    </ul>
+    <div class="panels states">
+      <figure class="panel area-rank"><figcaption>Breaches per million residents (line: all states, [[NATIONAL_RATE]])</figcaption>
+        <div class="plot" id="state-rank" role="img" aria-label="Bar chart ranking states by breaches per million residents"></div></figure>
+      <figure class="panel area-types"><figcaption>Breach type: share of breaches</figcaption>
+        <div class="plot" id="state-types" role="img" aria-label="Dot chart comparing New York and U.S. breach types"></div></figure>
+      <figure class="panel area-locations"><figcaption>Breach location: share of breaches</figcaption>
+        <div class="plot" id="state-locations" role="img" aria-label="Dot chart comparing New York and U.S. breach locations"></div></figure>
+    </div>
+    <p class="finding">[[FINDING_STATES]]</p>
+    <details><summary>Show the numbers</summary><div class="table-wrap" id="state-table"></div></details>
+  </section>
+
+  <section class="block method" aria-labelledby="method-title">
+    <h2 id="method-title">Method and limitations</h2>
+    <ul>
+      <li><strong>Only breaches of 500 or more people are listed.</strong> HHS publishes breaches affecting at least 500 people, so smaller breaches don't appear here.</li>
+      <li><strong>Organizations report themselves.</strong> Counts and categories are as submitted, and the number of people affected is often the organization's estimate.</li>
+      <li><strong>Breaches are counted by the reporting organization's state,</strong> not where the affected people live. Per-resident rates use 2020 Census populations.</li>
+      <li><strong>Mega-breaches are shown separately.</strong> The [[MEGA_COUNT]] breaches of 1,000,000+ people dominate totals and averages, so people-affected results appear with and without them, and a typical breach is described by its median.</li>
+      <li><strong>[[PARTIAL_FIRST]] and [[PARTIAL_LAST]] are partial years.</strong> The data runs from [[FIRST_DATE]] to [[LAST_DATE]], so trends use [[FIRST_YEAR]]–[[LAST_YEAR]].</li>
+      <li><strong>Categories overlap.</strong> A breach can have several types and locations, so shares can add up to more than 100%.</li>
+    </ul>
+    <p>Data: <a href="https://ocrportal.hhs.gov/ocr/breach/breach_report.jsf">HHS Office for Civil Rights breach portal</a> (downloaded October 10, 2026) and the U.S. Census Bureau's 2020 Census. Data cleaning, including the duplicate checks, is documented in the cleaning notebook.</p>
+  </section>
+</main>
+
+<footer class="wrap">
+  <nav class="links" aria-label="Project links">
+    <a href="[[REPO_URL]]">GitHub repository</a>
+    <a href="[[REPO_URL]]/blob/main/notebooks/01_cleaning.ipynb">Cleaning notebook</a>
+    <a href="[[REPO_URL]]/blob/main/notebooks/02_analysis.ipynb">Analysis notebook</a>
+  </nav>
+  <p>Built with pandas and Plotly from small aggregated results; the full dataset isn't loaded into this page.</p>
+</footer>
+
+<script type="application/json" id="dashboard-data">__DASHBOARD_DATA__</script>
+<script src="https://cdn.plot.ly/plotly-4.1.1.min.js" integrity="sha256-O24V1F27f8pb0glCkelh3cVHLNiHAJ5gCaVtq2aNch8=" crossorigin="anonymous"></script>
+<script>
+(function () {
+  "use strict";
+  const D = JSON.parse(document.getElementById("dashboard-data").textContent);
+  const css = getComputedStyle(document.documentElement);
+  const C = Object.fromEntries(
+    ["surface", "surface-raised", "ink", "ink-2", "muted", "grid", "axis", "blue", "orange", "aqua", "yellow", "context"]
+      .map((name) => [name, css.getPropertyValue("--" + name).trim()])
+  );
+  const FONT = css.getPropertyValue("--font").trim();
+  const CONFIG = { displayModeBar: false, responsive: true, scrollZoom: false };
+  const SHORT = {
+    "Unauthorized access/disclosure": "Unauthorized access",
+    "Electronic medical record": "Medical record (EMR)",
+    "Other portable device": "Portable device",
+  };
+  const short = (label) => SHORT[label] || label;
+  const fmt = (n, digits = 0) =>
+    Number(n).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+  const pct = (n) => fmt(n, 1) + "%";
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const narrow = () => window.innerWidth < 720;
+  const yearTick = () => (window.innerWidth < 900 ? 3 : 1);
+
+  function layout(spec) {
+    return Object.assign({
+      paper_bgcolor: C.surface,
+      plot_bgcolor: C.surface,
+      font: { family: FONT, size: 12, color: C["ink-2"] },
+      margin: { l: 44, r: 12, t: 12, b: 28 },
+      showlegend: false,
+      dragmode: false,
+      hoverlabel: { bgcolor: C["surface-raised"], bordercolor: C.axis, font: { family: FONT, size: 12, color: C.ink } },
+    }, spec);
+  }
+  function axis(spec) {
+    return Object.assign({
+      gridcolor: C.grid, linecolor: C.axis, zeroline: false, fixedrange: true,
+      automargin: true, ticks: "", tickfont: { size: 11, color: C["ink-2"] },
+    }, spec);
+  }
+  const note = (x, y, text, spec = {}) =>
+    Object.assign({ x, y, text, showarrow: false, font: { size: 11, color: C["ink-2"] } }, spec);
+  const plot = (id, traces, spec) => Plotly.react(id, traces, layout(spec), CONFIG);
+
+  function renderTrend() {
+    const t = D.trend;
+    const panels = [
+      ["trend-breaches", t.breaches, C.blue, (v) => fmt(v), "%{x}: %{y:,} breaches"],
+      ["trend-people", t.people_all_m, C.blue, (v) => fmt(v, 1) + "M", "%{x}: %{y:.1f} million people"],
+      ["trend-people-excl", t.people_excl_mega_m, C.orange, (v) => fmt(v, 1) + "M", "%{x}: %{y:.1f} million people"],
+    ];
+    for (const [id, values, color, label, hover] of panels) {
+      const max = Math.max(...values);
+      const labelled = new Set([0, values.length - 1, values.indexOf(max)]); // first, last and peak only
+      plot(id, [{
+        type: "bar", x: t.years, y: values, marker: { color, cornerradius: 4 },
+        text: values.map((v, i) => (labelled.has(i) ? label(v) : "")), textposition: "outside",
+        constraintext: "none", cliponaxis: false, textfont: { size: 11, color: C["ink-2"] },
+        hovertemplate: hover + "<extra></extra>",
+      }], {
+        height: narrow() ? 180 : 200, bargap: narrow() ? 0.3 : 0.55,
+        margin: { l: 40, r: 8, t: 20, b: 26 },
+        xaxis: axis({ showgrid: false, tickformat: "d", dtick: yearTick() }),
+        yaxis: axis({ range: [0, max * 1.3], tickformat: "~s", nticks: 4 }),
+      });
+    }
+  }
+
+  function renderCause() {
+    const c = D.cause;
+    const emphasis = { "Hacking/IT incident": C.blue, "Theft": C.orange, "Loss": C.aqua, "Unauthorized access/disclosure": C.yellow };
+    const names = Object.keys(c.share);
+    const ordered = names.filter((n) => !emphasis[n]).concat(names.filter((n) => emphasis[n])); // gray lines underneath
+    const traces = ordered.map((name) => ({
+      type: "scatter", mode: "lines", x: c.years, y: c.share[name], name: short(name),
+      line: { color: emphasis[name] || C.context, width: emphasis[name] ? 2 : 1.5 },
+      hovertemplate: short(name) + ": %{y:.1f}%<extra></extra>",
+    }));
+    const last = c.years.length - 1;
+    const hacking = c.share["Hacking/IT incident"];
+    const theft = c.share["Theft"];
+    plot("cause-plot", traces, {
+      height: narrow() ? 320 : 380, hovermode: "x unified",
+      margin: { l: 44, r: 40, t: 12, b: 28 },
+      xaxis: axis({ showgrid: false, tickformat: "d", dtick: yearTick() }),
+      yaxis: axis({ range: [0, 100], ticksuffix: "%", dtick: 20 }),
+      shapes: [{ type: "line", x0: c.overtake_year, x1: c.overtake_year, yref: "paper", y0: 0, y1: 1,
+                 line: { color: C.muted, width: 1 } }],
+      annotations: [
+        note(c.overtake_year, 98, narrow() ? `${c.overtake_year}: hacking<br>passes theft<br>and loss`
+                                           : `${c.overtake_year}: hacking passes theft and loss`,
+             { xanchor: "left", yanchor: "top", xshift: 6, align: "left" }),
+        note(c.years[last], hacking[last], Math.round(hacking[last]) + "%", { xanchor: "left", xshift: 6 }),
+        note(c.years[0], theft[0], "Theft " + Math.round(theft[0]) + "%", { xanchor: "left", yanchor: "bottom", xshift: 4, yshift: 4 }),
+      ],
+    });
+  }
+
+  function renderVendors() {
+    const v = D.vendors;
+    const last = v.years.length - 1;
+    const line = (y, color, name) => ({
+      type: "scatter", mode: "lines", x: v.years, y, name, line: { color, width: 2 },
+      hovertemplate: name + ": %{y:.1f}%<extra></extra>",
+    });
+    const endDot = (y, color) => ({
+      type: "scatter", mode: "markers", x: [v.years[last]], y: [y[last]], hoverinfo: "skip",
+      marker: { color, size: 8, line: { color: C.surface, width: 2 } },
+    });
+    const endLabel = (y) => note(v.years[last], y[last], Math.round(y[last]) + "%", { xanchor: "left", xshift: 8 });
+    const spec = (annotations) => ({
+      height: narrow() ? 230 : 260, hovermode: "x unified", margin: { l: 44, r: 40, t: 12, b: 28 },
+      xaxis: axis({ showgrid: false, tickformat: "d", dtick: 5 }),
+      yaxis: axis({ range: [0, 100], ticksuffix: "%", dtick: 25 }),
+      annotations,
+    });
+    plot("vendor-breaches",
+      [line(v.share_of_breaches, C.blue, "All breaches"), endDot(v.share_of_breaches, C.blue)],
+      spec([endLabel(v.share_of_breaches)]));
+    plot("vendor-people", [
+      line(v.share_of_people_all, C.blue, "All breaches"),
+      line(v.share_of_people_excl_mega, C.orange, "Excluding mega-breaches"),
+      endDot(v.share_of_people_all, C.blue), endDot(v.share_of_people_excl_mega, C.orange),
+    ], spec([endLabel(v.share_of_people_all), endLabel(v.share_of_people_excl_mega)]));
+  }
+
+  function renderLocations() {
+    const l = D.locations;
+    const names = l.names.map(short);
+    const height = narrow() ? 300 : 320;
+    const yaxis = axis({ autorange: "reversed", showgrid: false });
+    const maxCount = Math.max(...l.breaches);
+    const maxMedian = Math.max(...l.median_all);
+    const top = l.median_all.indexOf(maxMedian);
+    plot("location-count", [{
+      type: "bar", orientation: "h", y: names, x: l.breaches, marker: { color: C.blue, cornerradius: 4 },
+      hovertemplate: "%{y}: %{x:,} breaches<extra></extra>",
+    }], {
+      height, bargap: 0.45, margin: { l: 8, r: 16, t: 8, b: 28 },
+      xaxis: axis({ tickformat: "~s", range: [0, maxCount * 1.25], nticks: 5 }), yaxis,
+      annotations: [note(l.breaches[0], names[0], fmt(l.breaches[0]), { xanchor: "left", xshift: 6 })],
+    });
+    plot("location-median", [
+      { type: "bar", orientation: "h", y: names, x: l.median_all, name: "All breaches",
+        marker: { color: C.blue, cornerradius: 4 }, hovertemplate: "%{y}: median %{x:,} people (all breaches)<extra></extra>" },
+      { type: "bar", orientation: "h", y: names, x: l.median_excl_mega, name: "Excluding mega-breaches",
+        marker: { color: C.orange, cornerradius: 4 }, hovertemplate: "%{y}: median %{x:,} people (excluding mega-breaches)<extra></extra>" },
+    ], {
+      height, barmode: "group", bargap: 0.3, bargroupgap: 0.08, margin: { l: 8, r: 16, t: 8, b: 28 },
+      xaxis: axis({ tickformat: "~s", range: [0, maxMedian * 1.3], nticks: 5 }), yaxis,
+      annotations: [ // the blue bar sits above the orange one in each pair
+        note(l.median_all[top], names[top], fmt(l.median_all[top]), { xanchor: "left", xshift: 6, yshift: 6 }),
+        note(l.median_excl_mega[top], names[top], fmt(l.median_excl_mega[top]), { xanchor: "left", xshift: 6, yshift: -6 }),
+      ],
+    });
+  }
+
+  function renderStates() {
+    const s = D.states;
+    const ny = s.codes.indexOf("NY");
+    plot("state-rank", [{
+      type: "bar", orientation: "h", y: s.codes, x: s.per_million,
+      marker: { color: s.codes.map((code) => (code === "NY" ? C.blue : C.context)), cornerradius: 3 },
+      customdata: s.names.map((name, i) => [name, s.breaches[i], s.rank[i]]),
+      hovertemplate: "%{customdata[0]}: %{x:.1f} per million (%{customdata[1]} breaches, rank %{customdata[2]})<extra></extra>",
+    }], {
+      height: s.codes.length * 16 + 44, bargap: 0.28, margin: { l: 8, r: 16, t: 4, b: 28 },
+      xaxis: axis({ range: [0, Math.max(...s.per_million) * 1.2], nticks: 5 }),
+      yaxis: axis({ autorange: "reversed", showgrid: false, tickfont: { size: 10, color: C["ink-2"] } }),
+      shapes: [{ type: "line", x0: s.national_rate, x1: s.national_rate, yref: "paper", y0: 0, y1: 1,
+                 line: { color: C.muted, width: 1 } }],
+      annotations: [note(s.per_million[ny], "NY", `New York ${fmt(s.per_million[ny], 1)}`, { xanchor: "left", xshift: 6 })],
+    });
+    for (const [id, group] of [["state-types", "Type"], ["state-locations", "Location"]]) {
+      const p = s.pattern;
+      const idx = p.group.map((g, i) => (g === group ? i : -1)).filter((i) => i >= 0)
+        .sort((a, b) => p.all_us[b] - p.all_us[a]);
+      const labels = idx.map((i) => short(p.labels[i]));
+      const us = idx.map((i) => p.all_us[i]);
+      const nyShare = idx.map((i) => p.new_york[i]);
+      const xs = [];
+      const ys = [];
+      labels.forEach((label, k) => { xs.push(us[k], nyShare[k], null); ys.push(label, label, null); });
+      const dots = (x, name, color) => ({
+        type: "scatter", mode: "markers", x, y: labels, name,
+        marker: { color, size: 10, line: { color: C.surface, width: 2 } },
+        hovertemplate: name + ": %{x:.1f}%<extra>%{y}</extra>",
+      });
+      plot(id, [
+        { type: "scatter", mode: "lines", x: xs, y: ys, line: { color: C.axis, width: 3 }, hoverinfo: "skip" },
+        dots(us, "All U.S.", C.muted),
+        dots(nyShare, "New York", C.blue),
+      ], {
+        height: labels.length * 32 + 40, margin: { l: 8, r: 16, t: 4, b: 28 },
+        xaxis: axis({ ticksuffix: "%", range: [0, Math.max(...us, ...nyShare) * 1.12], nticks: 5 }),
+        yaxis: axis({ autorange: "reversed", showgrid: false }),
+      });
+    }
+  }
+
+  function table(headers, rows, caption) {
+    const head = "<thead><tr>" + headers.map((h) => `<th scope="col">${esc(h)}</th>`).join("") + "</tr></thead>";
+    const body = "<tbody>" + rows.map((row) => "<tr>" + row.map((cell, i) =>
+      i === 0 ? `<th scope="row">${esc(cell)}</th>` : `<td>${esc(cell)}</td>`).join("") + "</tr>").join("") + "</tbody>";
+    return (caption ? `<h3>${esc(caption)}</h3>` : "") + `<table>${head}${body}</table>`;
+  }
+
+  function renderTables() {
+    const t = D.trend;
+    document.getElementById("trend-table").innerHTML = table(
+      ["Year", "Breaches", "People affected (millions)", "Excl. mega-breaches (millions)"],
+      t.years.map((y, i) => [y, fmt(t.breaches[i]), fmt(t.people_all_m[i], 1), fmt(t.people_excl_mega_m[i], 1)]));
+    const c = D.cause;
+    const types = Object.keys(c.share);
+    document.getElementById("cause-table").innerHTML = table(
+      ["Year"].concat(types.map(short)),
+      c.years.map((y, i) => [y].concat(types.map((name) => pct(c.share[name][i])))));
+    const v = D.vendors;
+    document.getElementById("vendor-table").innerHTML = table(
+      ["Year", "Share of breaches", "Share of people (all)", "Share of people (excl. mega)"],
+      v.years.map((y, i) => [y, pct(v.share_of_breaches[i]), pct(v.share_of_people_all[i]), pct(v.share_of_people_excl_mega[i])]));
+    const l = D.locations;
+    document.getElementById("location-table").innerHTML = table(
+      ["Location", "Breaches", "Share of breaches", "Median people", "Median excl. mega", "Mega-breaches"],
+      l.names.map((name, i) => [short(name), fmt(l.breaches[i]), pct(l.share_of_breaches[i]),
+        fmt(l.median_all[i]), fmt(l.median_excl_mega[i]), fmt(l.mega_breaches[i])]));
+    const s = D.states;
+    document.getElementById("state-table").innerHTML =
+      table(["State", "Rank", "Breaches", "Per million residents"],
+        s.names.map((name, i) => [name, s.rank[i], fmt(s.breaches[i]), fmt(s.per_million[i], 1)]),
+        "Breaches per million residents") +
+      table(["Category", "New York", "All U.S."],
+        s.pattern.labels.map((label, i) => [`${s.pattern.group[i]}: ${short(label)}`, pct(s.pattern.new_york[i]), pct(s.pattern.all_us[i])]),
+        "Share of breaches by type and location");
+  }
+
+  function renderCharts() {
+    renderTrend();
+    renderCause();
+    renderVendors();
+    renderLocations();
+    renderStates();
+  }
+
+  renderTables();
+  if (window.Plotly) {
+    renderCharts();
+    let wasNarrow = narrow();
+    let timer;
+    window.addEventListener("resize", () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (narrow() !== wasNarrow) { wasNarrow = narrow(); renderCharts(); } // re-lay out across the phone breakpoint
+      }, 200);
+    });
+  } else {
+    for (const el of document.querySelectorAll(".plot")) {
+      el.innerHTML = '<p class="plot-fallback">The interactive chart couldn\'t load. The numbers are under "Show the numbers".</p>';
+    }
+  }
+})();
+</script>
+</body>
+</html>
